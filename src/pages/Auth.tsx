@@ -1,20 +1,19 @@
-
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/use-toast';
-import { Eye, EyeOff } from 'lucide-react';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
+import { Eye, EyeOff } from "lucide-react";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  
+
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -30,27 +29,27 @@ const Auth = () => {
           toast({
             title: "Login Failed",
             description: error.message,
-            variant: "destructive"
+            variant: "destructive",
           });
         } else {
-          navigate('/');
+          navigate("/");
         }
       } else {
         if (!firstName || !lastName) {
           toast({
             title: "Missing Information",
             description: "Please fill in all required fields",
-            variant: "destructive"
+            variant: "destructive",
           });
           return;
         }
-        
+
         const { error } = await signUp(email, password, firstName, lastName);
         if (error) {
           toast({
             title: "Signup Failed",
             description: error.message,
-            variant: "destructive"
+            variant: "destructive",
           });
         } else {
           toast({
@@ -69,10 +68,10 @@ const Auth = () => {
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            {isLogin ? 'Welcome Back' : 'Create Account'}
+            {isLogin ? "Welcome Back" : "Create Account"}
           </h1>
           <p className="text-gray-600">
-            {isLogin ? 'Sign in to your account' : 'Join our pet care community'}
+            {isLogin ? "Sign in to your account" : "Join our pet care community"}
           </p>
         </div>
 
@@ -80,9 +79,7 @@ const Auth = () => {
           {!isLogin && (
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  First Name
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
                 <input
                   type="text"
                   value={firstName}
@@ -93,9 +90,7 @@ const Auth = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Last Name
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
                 <input
                   type="text"
                   value={lastName}
@@ -109,9 +104,7 @@ const Auth = () => {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
             <input
               type="email"
               value={email}
@@ -123,12 +116,10 @@ const Auth = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Password
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
             <div className="relative">
               <input
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12"
@@ -150,7 +141,7 @@ const Auth = () => {
             disabled={loading}
             className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
           >
-            {loading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Create Account')}
+            {loading ? "Please wait..." : isLogin ? "Sign In" : "Create Account"}
           </Button>
         </form>
 
