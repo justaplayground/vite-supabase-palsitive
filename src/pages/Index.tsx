@@ -1,67 +1,83 @@
-
 import React, { useState } from 'react';
-import { Calendar, Plus, User, Clock, MapPin, Phone } from 'lucide-react';
+import { Calendar, Plus, User, Clock, MapPin, Phone, LogOut } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { usePets } from '@/hooks/usePets';
+import { useAppointments } from '@/hooks/useAppointments';
 import PetCard from '../components/PetCard';
 import AppointmentCard from '../components/AppointmentCard';
 import BookingModal from '../components/BookingModal';
 import PetModal from '../components/PetModal';
 import { Button } from '../components/ui/button';
+import { useToast } from '../components/ui/use-toast';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('home');
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [showPetModal, setShowPetModal] = useState(false);
+  
+  const { user, signOut } = useAuth();
+  const { pets, loading: petsLoading, addPet } = usePets();
+  const { appointments, loading: appointmentsLoading, addAppointment } = useAppointments();
+  const { toast } = useToast();
 
-  const pets = [
-    {
-      id: 1,
-      name: 'Luna',
-      type: 'Dog',
-      breed: 'Golden Retriever',
-      age: '3 years',
-      image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=300&h=300&fit=crop&crop=face',
-      lastVisit: '2024-05-15'
-    },
-    {
-      id: 2,
-      name: 'Whiskers',
-      type: 'Cat',
-      breed: 'Persian',
-      age: '2 years',
-      image: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=300&h=300&fit=crop&crop=face',
-      lastVisit: '2024-04-20'
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Signed out successfully",
+        description: "You have been logged out of your account",
+      });
+    } catch (error) {
+      toast({
+        title: "Error signing out",
+        description: "Please try again",
+        variant: "destructive"
+      });
     }
-  ];
+  };
 
-  const upcomingAppointments = [
-    {
-      id: 1,
-      petName: 'Luna',
-      petImage: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=300&h=300&fit=crop&crop=face',
-      date: '2024-06-20',
-      time: '10:00 AM',
-      type: 'Check-up',
-      vet: 'Dr. Sarah Johnson',
-      clinic: 'PetCare Central'
-    },
-    {
-      id: 2,
-      petName: 'Whiskers',
-      petImage: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=300&h=300&fit=crop&crop=face',
-      date: '2024-06-22',
-      time: '2:30 PM',
-      type: 'Vaccination',
-      vet: 'Dr. Mike Chen',
-      clinic: 'Healthy Paws Clinic'
-    }
-  ];
+  // Transform pets data for compatibility with existing components
+  const transformedPets = pets.map(pet => ({
+    id: parseInt(pet.id.slice(-8), 16), // Convert UUID to number for compatibility
+    name: pet.name,
+    type: pet.type,
+    breed: pet.breed || '',
+    age: pet.age || '',
+    image: pet.image_url || 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=300&h=300&fit=crop&crop=face',
+    lastVisit: new Date(pet.created_at).toISOString().split('T')[0]
+  }));
+
+  // Transform appointments data for compatibility
+  const transformedAppointments = appointments.map(appointment => ({
+    id: parseInt(appointment.id.slice(-8), 16),
+    petName: appointment.pets?.name || 'Unknown Pet',
+    petImage: appointment.pets?.image_url || 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=300&h=300&fit=crop&crop=face',
+    date: appointment.date,
+    time: appointment.time,
+    type: appointment.type,
+    vet: appointment.vet_name,
+    clinic: appointment.clinic_name
+  }));
 
   const renderHome = () => (
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl p-6 text-white">
-        <h1 className="text-2xl font-bold mb-2">Welcome back!</h1>
-        <p className="opacity-90">Your pets' health is our priority</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold mb-2">Welcome back!</h1>
+            <p className="opacity-90">Your pets' health is our priority</p>
+          </div>
+          <Button
+            onClick={handleSignOut}
+            variant="outline"
+            size="sm"
+            className="text-white border-white hover:bg-white hover:text-blue-600"
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Sign Out
+          </Button>
+        </div>
       </div>
 
       {/* Quick Actions */}
@@ -69,6 +85,7 @@ const Index = () => {
         <Button 
           onClick={() => setShowBookingModal(true)}
           className="h-20 bg-green-500 hover:bg-green-600 flex flex-col items-center justify-center space-y-2"
+          disabled={pets.length === 0}
         >
           <Calendar className="w-6 h-6" />
           <span className="text-sm">Book Appointment</span>
@@ -85,11 +102,24 @@ const Index = () => {
       {/* Upcoming Appointments */}
       <div>
         <h2 className="text-xl font-semibold mb-4">Upcoming Appointments</h2>
-        <div className="space-y-3">
-          {upcomingAppointments.map(appointment => (
-            <AppointmentCard key={appointment.id} appointment={appointment} />
-          ))}
-        </div>
+        {appointmentsLoading ? (
+          <div className="text-center py-8">
+            <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+            <p className="text-gray-600">Loading appointments...</p>
+          </div>
+        ) : transformedAppointments.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
+            <p>No upcoming appointments</p>
+            <p className="text-sm">Book your first appointment above</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {transformedAppointments.slice(0, 3).map(appointment => (
+              <AppointmentCard key={appointment.id} appointment={appointment} />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Emergency Contact */}
@@ -118,11 +148,28 @@ const Index = () => {
         </Button>
       </div>
       
-      <div className="grid gap-4">
-        {pets.map(pet => (
-          <PetCard key={pet.id} pet={pet} />
-        ))}
-      </div>
+      {petsLoading ? (
+        <div className="text-center py-8">
+          <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+          <p className="text-gray-600">Loading pets...</p>
+        </div>
+      ) : transformedPets.length === 0 ? (
+        <div className="text-center py-12 text-gray-500">
+          <User className="w-16 h-16 mx-auto mb-4 opacity-50" />
+          <h3 className="text-lg font-semibold mb-2">No pets yet</h3>
+          <p className="mb-4">Add your first pet to get started</p>
+          <Button onClick={() => setShowPetModal(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Add Your First Pet
+          </Button>
+        </div>
+      ) : (
+        <div className="grid gap-4">
+          {transformedPets.map(pet => (
+            <PetCard key={pet.id} pet={pet} />
+          ))}
+        </div>
+      )}
     </div>
   );
 
@@ -130,18 +177,43 @@ const Index = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Appointments</h1>
-        <Button onClick={() => setShowBookingModal(true)} size="sm">
+        <Button 
+          onClick={() => setShowBookingModal(true)} 
+          size="sm"
+          disabled={pets.length === 0}
+        >
           <Plus className="w-4 h-4 mr-2" />
           Book New
         </Button>
       </div>
       
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold">Upcoming</h2>
-        {upcomingAppointments.map(appointment => (
-          <AppointmentCard key={appointment.id} appointment={appointment} />
-        ))}
-      </div>
+      {appointmentsLoading ? (
+        <div className="text-center py-8">
+          <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+          <p className="text-gray-600">Loading appointments...</p>
+        </div>
+      ) : transformedAppointments.length === 0 ? (
+        <div className="text-center py-12 text-gray-500">
+          <Calendar className="w-16 h-16 mx-auto mb-4 opacity-50" />
+          <h3 className="text-lg font-semibold mb-2">No appointments scheduled</h3>
+          <p className="mb-4">Book your first appointment</p>
+          {pets.length > 0 ? (
+            <Button onClick={() => setShowBookingModal(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Book Appointment
+            </Button>
+          ) : (
+            <p className="text-sm">Add a pet first to book appointments</p>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold">Upcoming</h2>
+          {transformedAppointments.map(appointment => (
+            <AppointmentCard key={appointment.id} appointment={appointment} />
+          ))}
+        </div>
+      )}
     </div>
   );
 
@@ -151,38 +223,47 @@ const Index = () => {
         <div className="w-24 h-24 bg-gray-300 rounded-full mx-auto mb-4 flex items-center justify-center">
           <User className="w-12 h-12 text-gray-600" />
         </div>
-        <h1 className="text-2xl font-bold">John Smith</h1>
+        <h1 className="text-2xl font-bold">{user?.email}</h1>
         <p className="text-gray-600">Pet Parent</p>
       </div>
 
       <div className="space-y-4">
         <div className="bg-white rounded-xl p-4 shadow-sm border">
-          <h3 className="font-semibold mb-2">Contact Information</h3>
+          <h3 className="font-semibold mb-2">Account Information</h3>
           <div className="space-y-2 text-sm text-gray-600">
-            <div className="flex items-center space-x-2">
-              <Phone className="w-4 h-4" />
-              <span>+1 (555) 123-4567</span>
+            <div className="flex justify-between">
+              <span>Email:</span>
+              <span>{user?.email}</span>
             </div>
-            <div className="flex items-center space-x-2">
-              <MapPin className="w-4 h-4" />
-              <span>123 Main St, Anytown, USA</span>
+            <div className="flex justify-between">
+              <span>Member since:</span>
+              <span>{user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}</span>
             </div>
           </div>
         </div>
 
         <div className="bg-white rounded-xl p-4 shadow-sm border">
-          <h3 className="font-semibold mb-2">Preferences</h3>
+          <h3 className="font-semibold mb-2">Quick Stats</h3>
           <div className="space-y-2 text-sm text-gray-600">
             <div className="flex justify-between">
-              <span>Notifications</span>
-              <span className="text-green-600">Enabled</span>
+              <span>Total Pets:</span>
+              <span className="text-blue-600 font-semibold">{pets.length}</span>
             </div>
             <div className="flex justify-between">
-              <span>Reminders</span>
-              <span className="text-green-600">24h before</span>
+              <span>Appointments:</span>
+              <span className="text-green-600 font-semibold">{appointments.length}</span>
             </div>
           </div>
         </div>
+
+        <Button 
+          onClick={handleSignOut}
+          variant="outline"
+          className="w-full"
+        >
+          <LogOut className="w-4 h-4 mr-2" />
+          Sign Out
+        </Button>
       </div>
     </div>
   );
@@ -233,11 +314,13 @@ const Index = () => {
       <BookingModal 
         isOpen={showBookingModal} 
         onClose={() => setShowBookingModal(false)}
-        pets={pets}
+        pets={transformedPets}
+        onBookingComplete={addAppointment}
       />
       <PetModal 
         isOpen={showPetModal} 
         onClose={() => setShowPetModal(false)}
+        onPetAdded={addPet}
       />
     </div>
   );

@@ -9,7 +9,137 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      appointments: {
+        Row: {
+          clinic_name: string
+          created_at: string | null
+          date: string
+          id: string
+          notes: string | null
+          pet_id: string
+          status: string | null
+          time: string
+          type: string
+          updated_at: string | null
+          user_id: string
+          vet_name: string
+        }
+        Insert: {
+          clinic_name: string
+          created_at?: string | null
+          date: string
+          id?: string
+          notes?: string | null
+          pet_id: string
+          status?: string | null
+          time: string
+          type: string
+          updated_at?: string | null
+          user_id: string
+          vet_name: string
+        }
+        Update: {
+          clinic_name?: string
+          created_at?: string | null
+          date?: string
+          id?: string
+          notes?: string | null
+          pet_id?: string
+          status?: string | null
+          time?: string
+          type?: string
+          updated_at?: string | null
+          user_id?: string
+          vet_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pets: {
+        Row: {
+          age: string | null
+          breed: string | null
+          color: string | null
+          created_at: string | null
+          id: string
+          image_url: string | null
+          microchip_id: string | null
+          name: string
+          notes: string | null
+          type: string
+          updated_at: string | null
+          user_id: string
+          weight: string | null
+        }
+        Insert: {
+          age?: string | null
+          breed?: string | null
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          microchip_id?: string | null
+          name: string
+          notes?: string | null
+          type: string
+          updated_at?: string | null
+          user_id: string
+          weight?: string | null
+        }
+        Update: {
+          age?: string | null
+          breed?: string | null
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          microchip_id?: string | null
+          name?: string
+          notes?: string | null
+          type?: string
+          updated_at?: string | null
+          user_id?: string
+          weight?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          address: string | null
+          created_at: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          phone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string | null
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

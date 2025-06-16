@@ -1,7 +1,7 @@
-
 import React, { useState } from 'react';
 import { X, Calendar, Clock, User, MapPin } from 'lucide-react';
 import { Button } from './ui/button';
+import { useToast } from './ui/use-toast';
 
 interface Pet {
   id: number;
@@ -17,15 +17,19 @@ interface BookingModalProps {
   isOpen: boolean;
   onClose: () => void;
   pets: Pet[];
+  onBookingComplete: (appointmentData: any) => Promise<{ data: any; error: any }>;
 }
 
-const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, pets }) => {
+const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, pets, onBookingComplete }) => {
   const [step, setStep] = useState(1);
   const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
   const [selectedType, setSelectedType] = useState('');
   const [selectedVet, setSelectedVet] = useState('');
+  const [loading, setLoading] = useState(false);
+  
+  const { toast } = useToast();
 
   const appointmentTypes = [
     'Annual Check-up',
@@ -55,6 +59,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, pets }) =>
     setSelectedTime('');
     setSelectedType('');
     setSelectedVet('');
+    setLoading(false);
   };
 
   const handleClose = () => {
@@ -62,16 +67,56 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, pets }) =>
     onClose();
   };
 
-  const handleBooking = () => {
-    // Here you would typically send the booking data to your backend
-    console.log('Booking appointment:', {
-      pet: selectedPet,
-      date: selectedDate,
-      time: selectedTime,
-      type: selectedType,
-      vet: selectedVet
-    });
-    handleClose();
+  const handleBooking = async () => {
+    if (!selectedPet || !selectedDate || !selectedTime || !selectedType || !selectedVet) {
+      toast({
+        title: "Missing Information",
+        description: "Please complete all booking details",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const selectedVetData = vets.find(vet => vet.name === selectedVet);
+      
+      // Convert the pet ID back to UUID format for database
+      const petUuid = pets.find(p => p.id === selectedPet.id)?.id.toString() || '';
+      
+      const { error } = await onBookingComplete({
+        pet_id: petUuid,
+        date: selectedDate,
+        time: selectedTime,
+        type: selectedType,
+        vet_name: selectedVet,
+        clinic_name: selectedVetData?.clinic || 'Unknown Clinic',
+        status: 'scheduled'
+      });
+
+      if (error) {
+        toast({
+          title: "Booking Failed",
+          description: "Failed to book appointment. Please try again.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Appointment Booked!",
+          description: `Your appointment for ${selectedPet.name} has been scheduled`,
+        });
+        handleClose();
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -262,6 +307,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, pets }) =>
             <button 
               onClick={handleClose}
               className="p-2 hover:bg-gray-100 rounded-full"
+              disabled={loading}
             >
               <X className="w-5 h-5" />
             </button>
@@ -289,16 +335,17 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, pets }) =>
                 variant="outline"
                 onClick={() => setStep(step - 1)}
                 className="flex-1"
+                disabled={loading}
               >
                 Back
               </Button>
             )}
             <Button
               onClick={step === 5 ? handleBooking : () => setStep(step + 1)}
-              disabled={!canProceed()}
+              disabled={!canProceed() || loading}
               className="flex-1"
             >
-              {step === 5 ? 'Confirm Booking' : 'Next'}
+              {loading ? 'Booking...' : (step === 5 ? 'Confirm Booking' : 'Next')}
             </Button>
           </div>
         </div>

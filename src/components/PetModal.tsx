@@ -2,13 +2,15 @@
 import React, { useState } from 'react';
 import { X, Camera } from 'lucide-react';
 import { Button } from './ui/button';
+import { useToast } from './ui/use-toast';
 
 interface PetModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onPetAdded: (petData: any) => Promise<{ data: any; error: any }>;
 }
 
-const PetModal: React.FC<PetModalProps> = ({ isOpen, onClose }) => {
+const PetModal: React.FC<PetModalProps> = ({ isOpen, onClose, onPetAdded }) => {
   const [petData, setPetData] = useState({
     name: '',
     type: '',
@@ -16,11 +18,13 @@ const PetModal: React.FC<PetModalProps> = ({ isOpen, onClose }) => {
     age: '',
     weight: '',
     color: '',
-    microchipId: '',
+    microchip_id: '',
     notes: ''
   });
 
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
   const handleInputChange = (field: string, value: string) => {
     setPetData(prev => ({ ...prev, [field]: value }));
@@ -37,10 +41,46 @@ const PetModal: React.FC<PetModalProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  const handleSubmit = () => {
-    console.log('Adding new pet:', petData);
-    // Here you would typically send the data to your backend
-    onClose();
+  const handleSubmit = async () => {
+    if (!petData.name || !petData.type) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in the pet's name and type",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setLoading(true);
+    
+    try {
+      const { error } = await onPetAdded({
+        ...petData,
+        image_url: selectedImage || undefined
+      });
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to add pet. Please try again.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Success!",
+          description: `${petData.name} has been added to your pets`,
+        });
+        handleClose();
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const resetForm = () => {
@@ -51,7 +91,7 @@ const PetModal: React.FC<PetModalProps> = ({ isOpen, onClose }) => {
       age: '',
       weight: '',
       color: '',
-      microchipId: '',
+      microchip_id: '',
       notes: ''
     });
     setSelectedImage(null);
@@ -186,8 +226,8 @@ const PetModal: React.FC<PetModalProps> = ({ isOpen, onClose }) => {
               <label className="block text-sm font-medium mb-1">Microchip ID</label>
               <input
                 type="text"
-                value={petData.microchipId}
-                onChange={(e) => handleInputChange('microchipId', e.target.value)}
+                value={petData.microchip_id}
+                onChange={(e) => handleInputChange('microchip_id', e.target.value)}
                 className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="15-digit microchip number"
               />
@@ -211,15 +251,16 @@ const PetModal: React.FC<PetModalProps> = ({ isOpen, onClose }) => {
               variant="outline"
               onClick={handleClose}
               className="flex-1"
+              disabled={loading}
             >
               Cancel
             </Button>
             <Button
               onClick={handleSubmit}
-              disabled={!petData.name || !petData.type}
+              disabled={!petData.name || !petData.type || loading}
               className="flex-1"
             >
-              Add Pet
+              {loading ? 'Adding...' : 'Add Pet'}
             </Button>
           </div>
         </div>
