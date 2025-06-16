@@ -46,7 +46,7 @@ export const usePets = () => {
   };
 
   const addPet = async (petData: Omit<Pet, 'id' | 'created_at' | 'updated_at'>) => {
-    if (!user) return { error: 'User not authenticated' };
+    if (!user) return { data: null, error: 'User not authenticated' };
 
     try {
       const { data, error } = await supabase

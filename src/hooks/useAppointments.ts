@@ -58,7 +58,7 @@ export const useAppointments = () => {
   };
 
   const addAppointment = async (appointmentData: Omit<Appointment, 'id' | 'created_at' | 'updated_at' | 'pets'>) => {
-    if (!user) return { error: 'User not authenticated' };
+    if (!user) return { data: null, error: 'User not authenticated' };
 
     try {
       const { data, error } = await supabase
