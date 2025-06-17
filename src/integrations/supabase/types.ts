@@ -11,7 +11,9 @@ export type Database = {
     Tables: {
       appointments: {
         Row: {
+          appointment_notes: string | null
           clinic_name: string
+          completed_at: string | null
           created_at: string | null
           date: string
           id: string
@@ -25,7 +27,9 @@ export type Database = {
           vet_name: string
         }
         Insert: {
+          appointment_notes?: string | null
           clinic_name: string
+          completed_at?: string | null
           created_at?: string | null
           date: string
           id?: string
@@ -39,7 +43,9 @@ export type Database = {
           vet_name: string
         }
         Update: {
+          appointment_notes?: string | null
           clinic_name?: string
+          completed_at?: string | null
           created_at?: string | null
           date?: string
           id?: string
@@ -140,15 +146,95 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          clinic_name: string | null
+          created_at: string | null
+          id: string
+          license_number: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Insert: {
+          clinic_name?: string | null
+          created_at?: string | null
+          id?: string
+          license_number?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Update: {
+          clinic_name?: string | null
+          created_at?: string | null
+          id?: string
+          license_number?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      vaccinations: {
+        Row: {
+          created_at: string | null
+          date_administered: string
+          id: string
+          next_due_date: string | null
+          notes: string | null
+          pet_id: string
+          reminder_enabled: boolean | null
+          updated_at: string | null
+          vaccine_name: string
+          veterinarian_name: string
+        }
+        Insert: {
+          created_at?: string | null
+          date_administered: string
+          id?: string
+          next_due_date?: string | null
+          notes?: string | null
+          pet_id: string
+          reminder_enabled?: boolean | null
+          updated_at?: string | null
+          vaccine_name: string
+          veterinarian_name: string
+        }
+        Update: {
+          created_at?: string | null
+          date_administered?: string
+          id?: string
+          next_due_date?: string | null
+          notes?: string | null
+          pet_id?: string
+          reminder_enabled?: boolean | null
+          updated_at?: string | null
+          vaccine_name?: string
+          veterinarian_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vaccinations_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _user_id: string
+          _role: Database["public"]["Enums"]["user_role"]
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      user_role: "client" | "veterinarian" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -263,6 +349,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["client", "veterinarian", "admin"],
+    },
   },
 } as const

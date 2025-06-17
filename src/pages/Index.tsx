@@ -1,12 +1,15 @@
 import React, { useState } from "react";
-import { Calendar, Plus, User, Clock, MapPin, Phone, LogOut } from "lucide-react";
+import { Calendar, Plus, User, Clock, MapPin, Phone, LogOut, Stethoscope } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePets } from "@/hooks/usePets";
 import { useAppointments } from "@/hooks/useAppointments";
+import { useUserRole } from "@/hooks/useUserRole";
 import PetCard from "../components/PetCard";
 import AppointmentCard from "../components/AppointmentCard";
 import BookingModal from "../components/BookingModal";
 import PetModal from "../components/PetModal";
+import PetProfile from "../components/PetProfile";
+import VeterinarianDashboard from "./VeterinarianDashboard";
 import { Button } from "../components/ui/button";
 import { useToast } from "../components/ui/use-toast";
 
@@ -14,10 +17,12 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState("home");
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [showPetModal, setShowPetModal] = useState(false);
+  const [selectedPet, setSelectedPet] = useState<any>(null);
 
   const { user, signOut } = useAuth();
   const { pets, loading: petsLoading, addPet } = usePets();
   const { appointments, loading: appointmentsLoading, addAppointment } = useAppointments();
+  const { userRole, isVeterinarian } = useUserRole();
   const { toast } = useToast();
 
   const handleSignOut = async () => {
@@ -35,6 +40,29 @@ const Index = () => {
       });
     }
   };
+
+  const handlePetClick = (pet: any) => {
+    setSelectedPet(pet);
+  };
+
+  // Show veterinarian dashboard if user is a veterinarian
+  if (isVeterinarian && activeTab === "vet-dashboard") {
+    return <VeterinarianDashboard />;
+  }
+
+  // Show pet profile if a pet is selected
+  if (selectedPet) {
+    return (
+      <div className="h-screen bg-gray-50">
+        <div className="h-full max-h-screen overflow-auto pb-20 px-4 pt-6">
+          <PetProfile 
+            pet={selectedPet} 
+            onBack={() => setSelectedPet(null)} 
+          />
+        </div>
+      </div>
+    );
+  }
 
   // Transform pets data for compatibility with existing components
   const transformedPets = pets.map((pet) => ({
@@ -71,6 +99,9 @@ const Index = () => {
           <div>
             <h1 className="text-2xl font-bold mb-2">Welcome back!</h1>
             <p className="opacity-90">Your pets' health is our priority</p>
+            {userRole && (
+              <p className="text-sm opacity-75 mt-1">Role: {userRole.role}</p>
+            )}
           </div>
           <Button onClick={handleSignOut} variant="outline" size="sm" className="text-destructive">
             <LogOut className="w-4 h-4 mr-2" />
@@ -151,7 +182,9 @@ const Index = () => {
       ) : (
         <div className="grid gap-4">
           {transformedPets.map((pet) => (
-            <PetCard key={pet.id} pet={pet} />
+            <div key={pet.id} onClick={() => handlePetClick(pet)}>
+              <PetCard pet={pet} />
+            </div>
           ))}
         </div>
       )}
@@ -276,6 +309,15 @@ const Index = () => {
     }
   };
 
+  // Update bottom navigation to include vet dashboard
+  const navigationTabs = [
+    { id: "home", icon: Calendar, label: "Home" },
+    { id: "pets", icon: User, label: "Pets" },
+    { id: "appointments", icon: Clock, label: "Appointments" },
+    ...(isVeterinarian ? [{ id: "vet-dashboard", icon: Stethoscope, label: "Vet Dashboard" }] : []),
+    { id: "profile", icon: User, label: "Profile" }
+  ];
+
   return (
     <div className="h-screen bg-gray-50">
       {/* Main Content */}
@@ -283,24 +325,19 @@ const Index = () => {
 
       {/* Bottom Navigation */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-l border-r border-gray-200 px-4 py-2 rounded-t-2xl mx-1">
-        <div className="flex justify-around rounded-t-xl">
-          {[
-            { id: "home", icon: Calendar, label: "Home" },
-            { id: "pets", icon: User, label: "Pets" },
-            { id: "appointments", icon: Clock, label: "Appointments" },
-            { id: "profile", icon: User, label: "Profile" },
-          ].map((tab) => (
+        <div className="flex justify-around rounded-t-xl overflow-x-auto">
+          {navigationTabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex flex-col items-center space-y-1 py-2 px-3 rounded-lg transition-colors ${
+              className={`flex flex-col items-center space-y-1 py-2 px-3 rounded-lg transition-colors min-w-0 ${
                 activeTab === tab.id
                   ? "text-blue-600 bg-blue-50"
                   : "text-gray-600 hover:text-gray-800"
               }`}
             >
               <tab.icon className="w-5 h-5" />
-              <span className="text-xs font-medium">{tab.label}</span>
+              <span className="text-xs font-medium truncate">{tab.label}</span>
             </button>
           ))}
         </div>
