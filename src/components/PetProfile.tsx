@@ -5,13 +5,13 @@ import { Button } from './ui/button';
 import VaccinationTab from './VaccinationTab';
 
 interface Pet {
-  id: number;
+  id: string; // Changed to string to accept UUID
   name: string;
   type: string;
   breed: string;
   age: string;
-  image: string;
-  lastVisit: string;
+  image_url?: string;
+  created_at?: string;
 }
 
 interface PetProfileProps {
@@ -43,22 +43,22 @@ const PetProfile: React.FC<PetProfileProps> = ({ pet, onBack }) => {
                 </div>
                 <div>
                   <p className="text-gray-600">Breed:</p>
-                  <p className="font-medium">{pet.breed}</p>
+                  <p className="font-medium">{pet.breed || "Not specified"}</p>
                 </div>
                 <div>
                   <p className="text-gray-600">Age:</p>
-                  <p className="font-medium">{pet.age}</p>
+                  <p className="font-medium">{pet.age || "Not specified"}</p>
                 </div>
                 <div>
                   <p className="text-gray-600">Last Visit:</p>
-                  <p className="font-medium">{new Date(pet.lastVisit).toLocaleDateString()}</p>
+                  <p className="font-medium">{pet.created_at ? new Date(pet.created_at).toLocaleDateString() : "No visits yet"}</p>
                 </div>
               </div>
             </div>
           </div>
         );
       case 'vaccinations':
-        return <VaccinationTab petId={pet.id.toString()} />;
+        return <VaccinationTab petId={pet.id} />;
       case 'appointments':
         return (
           <div className="text-center py-12 text-gray-500">
@@ -87,13 +87,13 @@ const PetProfile: React.FC<PetProfileProps> = ({ pet, onBack }) => {
         </Button>
         <div className="flex items-center space-x-4">
           <img
-            src={pet.image}
+            src={pet.image_url || "https://images.unsplash.com/photo-1552053831-71594a27632d?w=300&h=300&fit=crop&crop=face"}
             alt={pet.name}
             className="w-16 h-16 rounded-full object-cover"
           />
           <div>
             <h1 className="text-2xl font-bold">{pet.name}</h1>
-            <p className="text-gray-600">{pet.type} • {pet.breed}</p>
+            <p className="text-gray-600">{pet.type} • {pet.breed || "Mixed"}</p>
           </div>
         </div>
       </div>

@@ -42,7 +42,9 @@ const Index = () => {
   };
 
   const handlePetClick = (pet: any) => {
-    setSelectedPet(pet);
+    // Pass the original pet data with the actual UUID string
+    const originalPet = pets.find(p => p.name === pet.name && p.type === pet.type);
+    setSelectedPet(originalPet);
   };
 
   // Show veterinarian dashboard if user is a veterinarian
@@ -64,7 +66,7 @@ const Index = () => {
     );
   }
 
-  // Transform pets data for compatibility with existing components
+  // Transform pets data for compatibility with existing components (for display only)
   const transformedPets = pets.map((pet) => ({
     id: parseInt(pet.id.slice(-8), 16), // Convert UUID to number for compatibility
     name: pet.name,
