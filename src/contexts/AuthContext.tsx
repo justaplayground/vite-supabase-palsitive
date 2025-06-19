@@ -3,11 +3,17 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
+interface SignUpData {
+  role: 'client' | 'veterinarian' | 'admin';
+  clinicName?: string;
+  licenseNumber?: string;
+}
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, firstName: string, lastName: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, firstName: string, lastName: string, roleData?: SignUpData) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
@@ -34,6 +40,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+
+        // Create user role after successful signup
+        if (event === 'SIGNED_UP' && session?.user) {
+          setTimeout(() => {
+            createUserRole(session.user);
+          }, 0);
+        }
       }
     );
 
@@ -47,7 +60,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, firstName: string, lastName: string) => {
+  const createUserRole = async (user: User) => {
+    const roleData = user.user_metadata?.roleData || { role: 'client' };
+    
+    try {
+      const { error } = await supabase
+        .from('user_roles')
+        .insert([{
+          user_id: user.id,
+          role: roleData.role,
+          clinic_name: roleData.clinicName || null,
+          license_number: roleData.licenseNumber || null
+        }]);
+
+      if (error && error.code !== '23505') { // Ignore duplicate key errors
+        console.error('Error creating user role:', error);
+      }
+    } catch (error) {
+      console.error('Error creating user role:', error);
+    }
+  };
+
+  const signUp = async (email: string, password: string, firstName: string, lastName: string, roleData?: SignUpData) => {
     const redirectUrl = `${window.location.origin}/`;
     
     const { error } = await supabase.auth.signUp({
@@ -57,7 +91,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         emailRedirectTo: redirectUrl,
         data: {
           first_name: firstName,
-          last_name: lastName
+          last_name: lastName,
+          roleData: roleData || { role: 'client' }
         }
       }
     });

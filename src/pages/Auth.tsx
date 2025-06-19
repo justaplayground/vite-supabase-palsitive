@@ -1,9 +1,12 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Eye, EyeOff } from "lucide-react";
+import RoleSelector from "@/components/RoleSelector";
+import VeterinarianFields from "@/components/VeterinarianFields";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -11,6 +14,9 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [role, setRole] = useState<'client' | 'veterinarian' | 'admin'>('client');
+  const [clinicName, setClinicName] = useState("");
+  const [licenseNumber, setLicenseNumber] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -44,7 +50,21 @@ const Auth = () => {
           return;
         }
 
-        const { error } = await signUp(email, password, firstName, lastName);
+        if (role === 'veterinarian' && (!clinicName || !licenseNumber)) {
+          toast({
+            title: "Missing Veterinarian Information",
+            description: "Please provide your clinic name and license number",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const { error } = await signUp(email, password, firstName, lastName, {
+          role,
+          clinicName: role === 'veterinarian' ? clinicName : undefined,
+          licenseNumber: role === 'veterinarian' ? licenseNumber : undefined
+        });
+        
         if (error) {
           toast({
             title: "Signup Failed",
@@ -77,30 +97,46 @@ const Auth = () => {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {!isLogin && (
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
-                <input
-                  type="text"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="John"
-                  required={!isLogin}
-                />
+            <>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                  <input
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="John"
+                    required={!isLogin}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                  <input
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Doe"
+                    required={!isLogin}
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
-                <input
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Doe"
-                  required={!isLogin}
+
+              <RoleSelector 
+                value={role} 
+                onChange={setRole}
+              />
+
+              {role === 'veterinarian' && (
+                <VeterinarianFields
+                  clinicName={clinicName}
+                  licenseNumber={licenseNumber}
+                  onClinicNameChange={setClinicName}
+                  onLicenseNumberChange={setLicenseNumber}
                 />
-              </div>
-            </div>
+              )}
+            </>
           )}
 
           <div>
