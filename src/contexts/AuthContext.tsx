@@ -41,8 +41,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
         setLoading(false);
 
-        // Create user role after successful signup
-        if (event === 'SIGNED_UP' && session?.user) {
+        // Create user role after successful signup - check for new user with session
+        if (event === 'SIGNED_IN' && session?.user && !session.user.email_confirmed_at) {
+          // This indicates a new signup that hasn't been confirmed yet
+          setTimeout(() => {
+            createUserRole(session.user);
+          }, 0);
+        } else if (event === 'SIGNED_IN' && session?.user?.user_metadata?.roleData) {
+          // Handle confirmed signup with role data
           setTimeout(() => {
             createUserRole(session.user);
           }, 0);
