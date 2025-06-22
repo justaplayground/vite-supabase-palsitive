@@ -1,5 +1,6 @@
+
 import React, { useState } from "react";
-import { Calendar, Plus, User, Clock, MapPin, Phone, LogOut, Stethoscope } from "lucide-react";
+import { Calendar, Plus, User, Clock, MapPin, Phone, LogOut, Stethoscope, Shield } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePets } from "@/hooks/usePets";
 import { useAppointments } from "@/hooks/useAppointments";
@@ -10,6 +11,8 @@ import BookingModal from "../components/BookingModal";
 import PetModal from "../components/PetModal";
 import PetProfile from "../components/PetProfile";
 import VeterinarianDashboard from "./VeterinarianDashboard";
+import AdminDashboard from "../components/AdminDashboard";
+import VeterinarianVerificationForm from "../components/VeterinarianVerificationForm";
 import { Button } from "../components/ui/button";
 import { useToast } from "../components/ui/use-toast";
 
@@ -22,7 +25,7 @@ const Index = () => {
   const { user, signOut } = useAuth();
   const { pets, loading: petsLoading, addPet } = usePets();
   const { appointments, loading: appointmentsLoading, addAppointment } = useAppointments();
-  const { userRole, isVeterinarian } = useUserRole();
+  const { userRole, isVeterinarian, isAdmin } = useUserRole();
   const { toast } = useToast();
 
   const handleSignOut = async () => {
@@ -47,9 +50,25 @@ const Index = () => {
     setSelectedPet(originalPet);
   };
 
+  // Show admin dashboard if user is an admin
+  if (isAdmin && activeTab === "admin-dashboard") {
+    return <AdminDashboard />;
+  }
+
   // Show veterinarian dashboard if user is a veterinarian
   if (isVeterinarian && activeTab === "vet-dashboard") {
     return <VeterinarianDashboard />;
+  }
+
+  // Show verification form if user is a veterinarian
+  if (isVeterinarian && activeTab === "verification") {
+    return (
+      <div className="h-screen bg-gray-50">
+        <div className="h-full max-h-screen overflow-auto pb-20 px-4 pt-6">
+          <VeterinarianVerificationForm />
+        </div>
+      </div>
+    );
   }
 
   // Show pet profile if a pet is selected
@@ -311,12 +330,16 @@ const Index = () => {
     }
   };
 
-  // Update bottom navigation to include vet dashboard
+  // Update bottom navigation to include admin dashboard and verification
   const navigationTabs = [
     { id: "home", icon: Calendar, label: "Home" },
     { id: "pets", icon: User, label: "Pets" },
     { id: "appointments", icon: Clock, label: "Appointments" },
-    ...(isVeterinarian ? [{ id: "vet-dashboard", icon: Stethoscope, label: "Vet Dashboard" }] : []),
+    ...(isVeterinarian ? [
+      { id: "vet-dashboard", icon: Stethoscope, label: "Vet Dashboard" },
+      { id: "verification", icon: Shield, label: "Verification" }
+    ] : []),
+    ...(isAdmin ? [{ id: "admin-dashboard", icon: Shield, label: "Admin" }] : []),
     { id: "profile", icon: User, label: "Profile" }
   ];
 

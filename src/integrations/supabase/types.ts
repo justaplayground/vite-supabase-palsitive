@@ -148,28 +148,64 @@ export type Database = {
       }
       user_roles: {
         Row: {
+          business_address: string | null
           clinic_name: string | null
           created_at: string | null
+          education: string | null
           id: string
+          is_verified: boolean | null
           license_number: string | null
+          phone_number: string | null
           role: Database["public"]["Enums"]["user_role"]
+          specializations: string[] | null
           user_id: string
+          verification_documents: string | null
+          verification_notes: string | null
+          verification_status: string | null
+          verification_submitted_at: string | null
+          verified_at: string | null
+          verified_by: string | null
+          years_of_experience: number | null
         }
         Insert: {
+          business_address?: string | null
           clinic_name?: string | null
           created_at?: string | null
+          education?: string | null
           id?: string
+          is_verified?: boolean | null
           license_number?: string | null
+          phone_number?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          specializations?: string[] | null
           user_id: string
+          verification_documents?: string | null
+          verification_notes?: string | null
+          verification_status?: string | null
+          verification_submitted_at?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+          years_of_experience?: number | null
         }
         Update: {
+          business_address?: string | null
           clinic_name?: string | null
           created_at?: string | null
+          education?: string | null
           id?: string
+          is_verified?: boolean | null
           license_number?: string | null
+          phone_number?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          specializations?: string[] | null
           user_id?: string
+          verification_documents?: string | null
+          verification_notes?: string | null
+          verification_status?: string | null
+          verification_submitted_at?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+          years_of_experience?: number | null
         }
         Relationships: []
       }
@@ -222,7 +258,24 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      verified_veterinarians: {
+        Row: {
+          business_address: string | null
+          clinic_name: string | null
+          education: string | null
+          first_name: string | null
+          id: string | null
+          is_verified: boolean | null
+          last_name: string | null
+          license_number: string | null
+          phone_number: string | null
+          specializations: string[] | null
+          user_id: string | null
+          verified_at: string | null
+          years_of_experience: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
