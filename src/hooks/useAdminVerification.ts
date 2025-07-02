@@ -46,38 +46,33 @@ export const useAdminVerification = () => {
 
   const fetchVerificationRequests = async () => {
     try {
-      const { data, error } = await supabase
+      // First get all veterinarian user roles
+      const { data: userRolesData, error: userRolesError } = await supabase
         .from('user_roles')
-        .select(`
-          id,
-          user_id,
-          clinic_name,
-          license_number,
-          business_address,
-          phone_number,
-          years_of_experience,
-          specializations,
-          education,
-          verification_documents,
-          verification_status,
-          verification_submitted_at,
-          verified_at,
-          verification_notes,
-          profiles (
-            first_name,
-            last_name
-          )
-        `)
+        .select('*')
         .eq('role', 'veterinarian')
         .order('verification_submitted_at', { ascending: false, nullsFirst: false });
 
-      if (error) throw error;
+      if (userRolesError) throw userRolesError;
 
-      const requests = data.map(item => ({
-        ...item,
-        first_name: item.profiles?.first_name,
-        last_name: item.profiles?.last_name
-      }));
+      // Then get the profiles for these users
+      const userIds = userRolesData.map(role => role.user_id);
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name')
+        .in('id', userIds);
+
+      if (profilesError) throw profilesError;
+
+      // Combine the data
+      const requests = userRolesData.map(role => {
+        const profile = profilesData.find(p => p.id === role.user_id);
+        return {
+          ...role,
+          first_name: profile?.first_name,
+          last_name: profile?.last_name
+        };
+      });
 
       setVerificationRequests(requests);
 
