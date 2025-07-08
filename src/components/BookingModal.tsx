@@ -4,13 +4,13 @@ import { Button } from './ui/button';
 import { useToast } from './ui/use-toast';
 
 interface Pet {
-  id: number;
+  id: string;
   name: string;
   type: string;
-  breed: string;
-  age: string;
-  image: string;
-  lastVisit: string;
+  breed?: string;
+  age?: string;
+  image_url?: string;
+  created_at?: string;
 }
 
 interface BookingModalProps {
@@ -68,6 +68,8 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, pets, onBo
   };
 
   const handleBooking = async () => {
+    console.log(selectedPet);
+    
     if (!selectedPet || !selectedDate || !selectedTime || !selectedType || !selectedVet) {
       toast({
         title: "Missing Information",
@@ -83,7 +85,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, pets, onBo
       const selectedVetData = vets.find(vet => vet.name === selectedVet);
       
       // Convert the pet ID back to UUID format for database
-      const petUuid = pets.find(p => p.id === selectedPet.id)?.id.toString() || '';
+      const petUuid = pets.find(p => p.id === selectedPet.id)?.id || '';
       
       const { error } = await onBookingComplete({
         pet_id: petUuid,
@@ -139,7 +141,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, pets, onBo
                   }`}
                 >
                   <img 
-                    src={pet.image} 
+                    src={pet.image_url || 'https://via.placeholder.com/50'} 
                     alt={pet.name}
                     className="w-12 h-12 rounded-full object-cover"
                   />
@@ -249,7 +251,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, pets, onBo
             <div className="bg-gray-50 rounded-xl p-4 space-y-3">
               <div className="flex items-center space-x-3">
                 <img 
-                  src={selectedPet?.image} 
+                  src={selectedPet?.image_url || 'https://via.placeholder.com/50'} 
                   alt={selectedPet?.name}
                   className="w-12 h-12 rounded-full object-cover"
                 />

@@ -1,10 +1,9 @@
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/components/ui/use-toast";
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/components/ui/use-toast';
-
-export type UserRole = 'client' | 'veterinarian' | 'admin';
+export type UserRole = "client" | "veterinarian" | "admin";
 
 export interface UserRoleData {
   id: string;
@@ -41,18 +40,18 @@ export const useUserRole = () => {
 
     try {
       const { data, error } = await supabase
-        .from('user_roles')
-        .select('*')
-        .eq('user_id', user.id)
+        .from("user_roles")
+        .select("*")
+        .eq("user_id", user.id)
         .single();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error && error.code !== "PGRST116") {
         throw error;
       }
 
       setUserRole(data);
     } catch (error) {
-      console.error('Error fetching user role:', error);
+      console.error("Error fetching user role:", error);
       toast({
         title: "Error",
         description: "Failed to load user role",
@@ -64,11 +63,11 @@ export const useUserRole = () => {
   };
 
   const updateUserRole = async (updates: Partial<UserRoleData>) => {
-    if (!user) throw new Error('No user found');
+    if (!user) throw new Error("No user found");
 
     try {
       const { data, error } = await supabase
-        .from('user_roles')
+        .from("user_roles")
         .upsert({
           user_id: user.id,
           ...updates,
@@ -81,7 +80,7 @@ export const useUserRole = () => {
       setUserRole(data);
       return { data, error: null };
     } catch (error) {
-      console.error('Error updating user role:', error);
+      console.error("Error updating user role:", error);
       return { data: null, error };
     }
   };
@@ -95,5 +94,8 @@ export const useUserRole = () => {
     loading,
     updateUserRole,
     refetch: fetchUserRole,
+    isVeterinarian: userRole?.role === "veterinarian",
+    isAdmin: userRole?.role === "admin",
+    isClient: userRole?.role === "client",
   };
 };

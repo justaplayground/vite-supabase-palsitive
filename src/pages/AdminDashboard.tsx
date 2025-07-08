@@ -1,41 +1,49 @@
-
-import React, { useState } from 'react';
-import { Shield, Users, CheckCircle, XCircle, Clock, Search, Filter } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAdminVerification } from '@/hooks/useAdminVerification';
-import VerificationReviewModal from './VerificationReviewModal';
+import React, { useState } from "react";
+import { Shield, Users, CheckCircle, XCircle, Clock, Search, Filter } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { useAdminVerification } from "@/hooks/useAdminVerification";
+import VerificationReviewModal from "@/components/VerificationReviewModal";
 
 const AdminDashboard = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [selectedVerification, setSelectedVerification] = useState<any>(null);
   const { verificationRequests, stats, loading, updateVerificationStatus } = useAdminVerification();
 
-  const filteredRequests = verificationRequests.filter(request => {
-    const matchesSearch = request.clinic_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         request.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         request.last_name?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || request.verification_status === statusFilter;
+  const filteredRequests = verificationRequests.filter((request) => {
+    const matchesSearch =
+      request.clinic_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      request.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      request.last_name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === "all" || request.verification_status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'verified': return 'bg-green-100 text-green-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'rejected': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "verified":
+        return "bg-green-100 text-green-800";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "rejected":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'verified': return <CheckCircle className="w-4 h-4" />;
-      case 'pending': return <Clock className="w-4 h-4" />;
-      case 'rejected': return <XCircle className="w-4 h-4" />;
-      default: return <Shield className="w-4 h-4" />;
+      case "verified":
+        return <CheckCircle className="w-4 h-4" />;
+      case "pending":
+        return <Clock className="w-4 h-4" />;
+      case "rejected":
+        return <XCircle className="w-4 h-4" />;
+      default:
+        return <Shield className="w-4 h-4" />;
     }
   };
 
@@ -51,7 +59,7 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl p-6 text-white">
@@ -145,8 +153,12 @@ const AdminDashboard = () => {
             <Card>
               <CardContent className="p-8 text-center">
                 <Shield className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                <h3 className="text-lg font-semibold text-gray-600 mb-2">No verification requests found</h3>
-                <p className="text-gray-500">No requests match the current search and filter criteria.</p>
+                <h3 className="text-lg font-semibold text-gray-600 mb-2">
+                  No verification requests found
+                </h3>
+                <p className="text-gray-500">
+                  No requests match the current search and filter criteria.
+                </p>
               </CardContent>
             </Card>
           ) : (
@@ -163,28 +175,47 @@ const AdminDashboard = () => {
                           <h3 className="font-semibold text-lg">
                             Dr. {request.first_name} {request.last_name}
                           </h3>
-                          <Badge className={`${getStatusColor(request.verification_status)} flex items-center gap-1`}>
+                          <Badge
+                            className={`${getStatusColor(
+                              request.verification_status
+                            )} flex items-center gap-1`}
+                          >
                             {getStatusIcon(request.verification_status)}
                             {request.verification_status?.toUpperCase()}
                           </Badge>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
                           <div>
-                            <p><strong>Clinic:</strong> {request.clinic_name}</p>
-                            <p><strong>License:</strong> {request.license_number}</p>
-                            <p><strong>Experience:</strong> {request.years_of_experience} years</p>
+                            <p>
+                              <strong>Clinic:</strong> {request.clinic_name}
+                            </p>
+                            <p>
+                              <strong>License:</strong> {request.license_number}
+                            </p>
+                            <p>
+                              <strong>Experience:</strong> {request.years_of_experience} years
+                            </p>
                           </div>
                           <div>
-                            <p><strong>Phone:</strong> {request.phone_number}</p>
-                            <p><strong>Address:</strong> {request.business_address}</p>
+                            <p>
+                              <strong>Phone:</strong> {request.phone_number}
+                            </p>
+                            <p>
+                              <strong>Address:</strong> {request.business_address}
+                            </p>
                             {request.verification_submitted_at && (
-                              <p><strong>Submitted:</strong> {new Date(request.verification_submitted_at).toLocaleDateString()}</p>
+                              <p>
+                                <strong>Submitted:</strong>{" "}
+                                {new Date(request.verification_submitted_at).toLocaleDateString()}
+                              </p>
                             )}
                           </div>
                         </div>
                         {request.specializations && request.specializations.length > 0 && (
                           <div className="mt-2">
-                            <p className="text-sm text-gray-600 mb-1"><strong>Specializations:</strong></p>
+                            <p className="text-sm text-gray-600 mb-1">
+                              <strong>Specializations:</strong>
+                            </p>
                             <div className="flex flex-wrap gap-1">
                               {request.specializations.map((spec, index) => (
                                 <Badge key={index} variant="outline" className="text-xs">
@@ -204,11 +235,11 @@ const AdminDashboard = () => {
                       >
                         Review Details
                       </Button>
-                      {request.verification_status === 'pending' && (
+                      {request.verification_status === "pending" && (
                         <div className="flex gap-1">
                           <Button
                             size="sm"
-                            onClick={() => updateVerificationStatus(request.id, 'verified')}
+                            onClick={() => updateVerificationStatus(request.id, "verified")}
                             className="bg-green-600 hover:bg-green-700 text-xs px-2"
                           >
                             Approve
@@ -216,7 +247,7 @@ const AdminDashboard = () => {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => updateVerificationStatus(request.id, 'rejected')}
+                            onClick={() => updateVerificationStatus(request.id, "rejected")}
                             className="text-red-600 border-red-300 hover:bg-red-50 text-xs px-2"
                           >
                             Reject

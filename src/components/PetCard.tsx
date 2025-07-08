@@ -3,13 +3,13 @@ import React from 'react';
 import { Calendar, MapPin } from 'lucide-react';
 
 interface Pet {
-  id: number;
+  id: string;
   name: string;
   type: string;
-  breed: string;
-  age: string;
-  image: string;
-  lastVisit: string;
+  breed?: string;
+  age?: string;
+  image_url?: string;
+  created_at?: string;
 }
 
 interface PetCardProps {
@@ -21,7 +21,7 @@ const PetCard: React.FC<PetCardProps> = ({ pet }) => {
     <div className="bg-white rounded-2xl p-4 shadow-sm border hover:shadow-md transition-shadow">
       <div className="flex items-center space-x-4">
         <img 
-          src={pet.image} 
+          src={pet.image_url || 'https://via.placeholder.com/64'} 
           alt={pet.name}
           className="w-16 h-16 rounded-full object-cover"
         />
@@ -30,7 +30,7 @@ const PetCard: React.FC<PetCardProps> = ({ pet }) => {
           <p className="text-gray-600 text-sm">{pet.breed} • {pet.age}</p>
           <div className="flex items-center space-x-1 mt-1">
             <Calendar className="w-3 h-3 text-gray-400" />
-            <span className="text-xs text-gray-500">Last visit: {pet.lastVisit}</span>
+            <span className="text-xs text-gray-500">Last visit: {pet.created_at ? new Date(pet.created_at).toLocaleDateString() : 'N/A'}</span>
           </div>
         </div>
         <div className="text-right">

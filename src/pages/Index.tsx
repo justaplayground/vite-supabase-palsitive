@@ -1,6 +1,15 @@
-
 import React, { useState } from "react";
-import { Calendar, Plus, User, Clock, MapPin, Phone, LogOut, Stethoscope, Shield } from "lucide-react";
+import {
+  Calendar,
+  Plus,
+  User,
+  Clock,
+  MapPin,
+  Phone,
+  LogOut,
+  Stethoscope,
+  Shield,
+} from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePets } from "@/hooks/usePets";
 import { useAppointments } from "@/hooks/useAppointments";
@@ -11,7 +20,7 @@ import BookingModal from "../components/BookingModal";
 import PetModal from "../components/PetModal";
 import PetProfile from "../components/PetProfile";
 import VeterinarianDashboard from "./VeterinarianDashboard";
-import AdminDashboard from "../components/AdminDashboard";
+import AdminDashboard from "./AdminDashboard";
 import VeterinarianVerificationForm from "../components/VeterinarianVerificationForm";
 import { Button } from "../components/ui/button";
 import { useToast } from "../components/ui/use-toast";
@@ -25,7 +34,7 @@ const Index = () => {
   const { user, signOut } = useAuth();
   const { pets, loading: petsLoading, addPet } = usePets();
   const { appointments, loading: appointmentsLoading, addAppointment } = useAppointments();
-  const { userRole, isVeterinarian, isAdmin } = useUserRole();
+  const { userRole, isVeterinarian, isAdmin, isClient } = useUserRole();
   const { toast } = useToast();
 
   const handleSignOut = async () => {
@@ -44,16 +53,10 @@ const Index = () => {
     }
   };
 
+  // Update handlePetClick to work with the new Pet interface (UUIDs, image_url, etc)
   const handlePetClick = (pet: any) => {
-    // Pass the original pet data with the actual UUID string
-    const originalPet = pets.find(p => p.name === pet.name && p.type === pet.type);
-    setSelectedPet(originalPet);
+    setSelectedPet(pet);
   };
-
-  // Show admin dashboard if user is an admin
-  if (isAdmin && activeTab === "admin-dashboard") {
-    return <AdminDashboard />;
-  }
 
   // Show veterinarian dashboard if user is a veterinarian
   if (isVeterinarian && activeTab === "vet-dashboard") {
@@ -76,104 +79,97 @@ const Index = () => {
     return (
       <div className="h-screen bg-gray-50">
         <div className="h-full max-h-screen overflow-auto pb-20 px-4 pt-6">
-          <PetProfile 
-            pet={selectedPet} 
-            onBack={() => setSelectedPet(null)} 
-          />
+          <PetProfile pet={selectedPet} onBack={() => setSelectedPet(null)} />
         </div>
       </div>
     );
   }
 
-  // Transform pets data for compatibility with existing components (for display only)
-  const transformedPets = pets.map((pet) => ({
-    id: parseInt(pet.id.slice(-8), 16), // Convert UUID to number for compatibility
-    name: pet.name,
-    type: pet.type,
-    breed: pet.breed || "",
-    age: pet.age || "",
-    image:
-      pet.image_url ||
-      "https://images.unsplash.com/photo-1552053831-71594a27632d?w=300&h=300&fit=crop&crop=face",
-    lastVisit: new Date(pet.created_at).toISOString().split("T")[0],
-  }));
-
   // Transform appointments data for compatibility
-  const transformedAppointments = appointments.map((appointment) => ({
-    id: parseInt(appointment.id.slice(-8), 16),
-    petName: appointment.pets?.name || "Unknown Pet",
-    petImage:
-      appointment.pets?.image_url ||
-      "https://images.unsplash.com/photo-1552053831-71594a27632d?w=300&h=300&fit=crop&crop=face",
-    date: appointment.date,
-    time: appointment.time,
-    type: appointment.type,
-    vet: appointment.vet_name,
-    clinic: appointment.clinic_name,
-  }));
+  // const transformedAppointments = appointments.map((appointment) => ({
+  //   id: parseInt(appointment.id.slice(-8), 16),
+  //   petName: appointment.pets?.name || "Unknown Pet",
+  //   petImage:
+  //     appointment.pets?.image_url ||
+  //     "https://images.unsplash.com/photo-1552053831-71594a27632d?w=300&h=300&fit=crop&crop=face",
+  //   date: appointment.date,
+  //   time: appointment.time,
+  //   type: appointment.type,
+  //   vet: appointment.vet_name,
+  //   clinic: appointment.clinic_name,
+  // }));
 
-  const renderHome = () => (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl p-6 text-white">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold mb-2">Welcome back!</h1>
-            <p className="opacity-90">Your pets' health is our priority</p>
-            {userRole && (
-              <p className="text-sm opacity-75 mt-1">Role: {userRole.role}</p>
-            )}
+  const renderHome = () => {
+    return isAdmin ? (
+      <AdminDashboard />
+    ) : isVeterinarian ? (
+      <VeterinarianDashboard />
+    ) : (
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl p-6 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold mb-2">Welcome back!</h1>
+              <p className="opacity-90">Your pets' health is our priority</p>
+              {userRole && <p className="text-sm opacity-75 mt-1">Role: {userRole.role}</p>}
+            </div>
+            <Button
+              onClick={handleSignOut}
+              variant="outline"
+              size="sm"
+              className="text-destructive"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Sign Out
+            </Button>
           </div>
-          <Button onClick={handleSignOut} variant="outline" size="sm" className="text-destructive">
-            <LogOut className="w-4 h-4 mr-2" />
-            Sign Out
+        </div>
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-2 gap-4 relative">
+          <Button
+            onClick={() => setShowBookingModal(true)}
+            className="h-20 bg-green-500 hover:bg-green-600 flex flex-col items-center justify-center space-y-2"
+            disabled={pets.length === 0}
+          >
+            <Calendar className="w-6 h-6" />
+            <span className="text-sm">Book Appointment</span>
+          </Button>
+          <Button
+            onClick={() => setShowPetModal(true)}
+            className="h-20 bg-blue-500 hover:bg-blue-600 flex flex-col items-center justify-center space-y-2"
+          >
+            <Plus className="w-6 h-6" />
+            <span className="text-sm">Add Pet</span>
           </Button>
         </div>
-      </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 gap-4 relative">
-        <Button
-          onClick={() => setShowBookingModal(true)}
-          className="h-20 bg-green-500 hover:bg-green-600 flex flex-col items-center justify-center space-y-2"
-          disabled={pets.length === 0}
-        >
-          <Calendar className="w-6 h-6" />
-          <span className="text-sm">Book Appointment</span>
-        </Button>
-        <Button
-          onClick={() => setShowPetModal(true)}
-          className="h-20 bg-blue-500 hover:bg-blue-600 flex flex-col items-center justify-center space-y-2"
-        >
-          <Plus className="w-6 h-6" />
-          <span className="text-sm">Add Pet</span>
-        </Button>
+        {/* Upcoming Appointments */}
+        <div>
+          <h2 className="text-xl font-semibold mb-4">Upcoming Appointments</h2>
+          {appointmentsLoading ? (
+            <div className="text-center py-8">
+              <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+              <p className="text-gray-600">Loading appointments...</p>
+            </div>
+          ) : appointments.length === 0 ? (
+            <div className="text-center py-16 text-gray-500">
+              <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p>No upcoming appointments</p>
+              <p className="text-sm">Book your first appointment above</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {appointments.slice(0, 3).map((appointment) => (
+                <AppointmentCard key={appointment.id} appointment={appointment} />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
-
-      {/* Upcoming Appointments */}
-      <div>
-        <h2 className="text-xl font-semibold mb-4">Upcoming Appointments</h2>
-        {appointmentsLoading ? (
-          <div className="text-center py-8">
-            <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-            <p className="text-gray-600">Loading appointments...</p>
-          </div>
-        ) : transformedAppointments.length === 0 ? (
-          <div className="text-center py-16 text-gray-500">
-            <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>No upcoming appointments</p>
-            <p className="text-sm">Book your first appointment above</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {transformedAppointments.slice(0, 3).map((appointment) => (
-              <AppointmentCard key={appointment.id} appointment={appointment} />
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
+    );
+  };
 
   const renderPets = () => (
     <div className="space-y-6">
@@ -190,7 +186,7 @@ const Index = () => {
           <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
           <p className="text-gray-600">Loading pets...</p>
         </div>
-      ) : transformedPets.length === 0 ? (
+      ) : pets.length === 0 ? (
         <div className="text-center py-12 text-gray-500">
           <User className="w-16 h-16 mx-auto mb-4 opacity-50" />
           <h3 className="text-lg font-semibold mb-2">No pets yet</h3>
@@ -202,7 +198,7 @@ const Index = () => {
         </div>
       ) : (
         <div className="grid gap-4">
-          {transformedPets.map((pet) => (
+          {pets.map((pet) => (
             <div key={pet.id} onClick={() => handlePetClick(pet)}>
               <PetCard pet={pet} />
             </div>
@@ -227,7 +223,7 @@ const Index = () => {
           <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
           <p className="text-gray-600">Loading appointments...</p>
         </div>
-      ) : transformedAppointments.length === 0 ? (
+      ) : appointments.length === 0 ? (
         <div className="text-center py-12 text-gray-500">
           <Calendar className="w-16 h-16 mx-auto mb-4 opacity-50" />
           <h3 className="text-lg font-semibold mb-2">No appointments scheduled</h3>
@@ -244,7 +240,7 @@ const Index = () => {
       ) : (
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">Upcoming</h2>
-          {transformedAppointments.map((appointment) => (
+          {appointments.map((appointment) => (
             <AppointmentCard key={appointment.id} appointment={appointment} />
           ))}
         </div>
@@ -317,8 +313,8 @@ const Index = () => {
 
   const renderContent = () => {
     switch (activeTab) {
-      case "home":
-        return renderHome();
+      // case "home":
+      //   return renderHome();
       case "pets":
         return renderPets();
       case "appointments":
@@ -332,15 +328,20 @@ const Index = () => {
 
   // Update bottom navigation to include admin dashboard and verification
   const navigationTabs = [
-    { id: "home", icon: Calendar, label: "Home" },
-    { id: "pets", icon: User, label: "Pets" },
-    { id: "appointments", icon: Clock, label: "Appointments" },
-    ...(isVeterinarian ? [
-      { id: "vet-dashboard", icon: Stethoscope, label: "Vet Dashboard" },
-      { id: "verification", icon: Shield, label: "Verification" }
-    ] : []),
-    ...(isAdmin ? [{ id: "admin-dashboard", icon: Shield, label: "Admin" }] : []),
-    { id: "profile", icon: User, label: "Profile" }
+    { id: "home", icon: isAdmin ? Shield : Calendar, label: "Home" },
+    ...(isClient
+      ? [
+          { id: "pets", icon: User, label: "Pets" },
+          { id: "appointments", icon: Clock, label: "Appointments" },
+        ]
+      : []),
+    ...(isVeterinarian
+      ? [
+          { id: "vet-dashboard", icon: Stethoscope, label: "Vet Dashboard" },
+          { id: "verification", icon: Shield, label: "Verification" },
+        ]
+      : []),
+    { id: "profile", icon: User, label: "Profile" },
   ];
 
   return (
@@ -372,7 +373,7 @@ const Index = () => {
       <BookingModal
         isOpen={showBookingModal}
         onClose={() => setShowBookingModal(false)}
-        pets={transformedPets}
+        pets={pets}
         onBookingComplete={addAppointment}
       />
       <PetModal isOpen={showPetModal} onClose={() => setShowPetModal(false)} onPetAdded={addPet} />
