@@ -249,7 +249,7 @@ const Index = () => {
   );
 
   const renderProfile = () => (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-6xl mx-auto">
       <div className="text-center">
         <div className="w-24 h-24 bg-gray-300 rounded-full mx-auto mb-4 flex items-center justify-center">
           <User className="w-12 h-12 text-gray-600" />
@@ -357,9 +357,7 @@ const Index = () => {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex flex-col items-center space-y-1 py-2 px-3 rounded-lg transition-colors min-w-0 ${
-                activeTab === tab.id
-                  ? "text-blue-600 bg-blue-50"
-                  : "text-gray-600 hover:text-gray-800"
+                activeTab === tab.id ? "text-blue-600 " : "text-gray-600 hover:text-gray-400"
               }`}
             >
               <tab.icon className="w-5 h-5" />

@@ -4,7 +4,7 @@ import path from "path";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
-  base: "/palsitive/", // remove this when the project is deployed as a standalone
+  base: "/palsitive", // remove this when the project is deployed as a standalone
   server: {
     host: "::",
     port: 8080,
