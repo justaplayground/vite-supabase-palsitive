@@ -59,8 +59,8 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-max bg-gray-50">
+      <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl p-6 text-white">
           <h1 className="text-2xl font-bold mb-2">Admin Dashboard</h1>

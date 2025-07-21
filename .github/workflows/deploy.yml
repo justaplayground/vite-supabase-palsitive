@@ -29,8 +29,9 @@ jobs:
         run: |
           npm i --legacy-peer-deps
           npm run build
+          rm dist/_redirects
           # Replace placeholder with actual server name
-          sed -i "s/\${NGINX_SERVER_NAME}/${{ env.PROJECT_NAME }}.${{ env.ORIGIN_SERVER_NAME }}/g" nginx.conf
+          # sed -i "s/\${NGINX_SERVER_NAME}/${{ env.PROJECT_NAME }}.${{ env.ORIGIN_SERVER_NAME }}/g" nginx.conf
           # Replace placeholder with actual project name
           sed -i "s/\${PROJECT_NAME}/${{ env.PROJECT_NAME }}/g" nginx.modular.conf
           cp nginx.modular.conf dist/
@@ -64,7 +65,7 @@ jobs:
           sudo cp -r dist /var/www/${{ env.PROJECT_NAME }}/dist
           sudo cp -r dist/nginx.modular.conf /etc/nginx/includes/projects/${{ env.PROJECT_NAME }}.conf
           # currently using modular style nginx config
-          # sudo ln -sf /etc/nginx/includes/projects/proplan-hub.conf /etc/nginx/includes/proplan-hub.conf  
+          # sudo ln -sf /etc/nginx/includes/projects/${{ env.PROJECT_NAME }}.conf /etc/nginx/includes/${{ env.PROJECT_NAME }}.conf  
           sudo nginx -t
           sudo systemctl restart nginx
 
@@ -76,7 +77,7 @@ jobs:
           # Clean up any temporary files
           rm -rf /tmp/${{ env.PROJECT_NAME }}-* || true
 
-  # NOTE: This is commented out because it's not needed for now. 
+  # NOTE: This is commented out because it's not needed for now.
   #       We should save the build minutes.
   # Cleanup GitHub Actions artifacts
   # cleanup-artifacts:
