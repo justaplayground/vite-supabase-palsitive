@@ -52,7 +52,7 @@ const App = () => (
         <AuthProvider>
           <Toaster />
           <Sonner />
-          <BrowserRouter>
+          <BrowserRouter basename="/palsitive">
             <Routes>
               <Route
                 path="/"
