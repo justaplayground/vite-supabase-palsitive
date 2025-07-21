@@ -3,7 +3,8 @@ name: 🚀 Deploy to Nginx | Dellbuntu
 on:
   push:
     branches:
-      - main
+      # - main
+      - develop
 
 permissions:
   actions: write
