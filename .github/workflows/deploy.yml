@@ -29,7 +29,6 @@ jobs:
         run: |
           npm i --legacy-peer-deps
           npm run build
-          rm dist/_redirects
           # Replace placeholder with actual server name
           sed -i "s/\${NGINX_SERVER_NAME}/${{ env.PROJECT_NAME }}.${{ env.ORIGIN_SERVER_NAME }}/g" nginx.conf
           # Replace placeholder with actual project name
