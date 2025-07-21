@@ -23,7 +23,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
 
       - name: Build frontend
         run: |
@@ -31,7 +31,7 @@ jobs:
           npm run build
           rm dist/_redirects
           # Replace placeholder with actual server name
-          # sed -i "s/\${NGINX_SERVER_NAME}/${{ env.PROJECT_NAME }}.${{ env.ORIGIN_SERVER_NAME }}/g" nginx.conf
+          sed -i "s/\${NGINX_SERVER_NAME}/${{ env.PROJECT_NAME }}.${{ env.ORIGIN_SERVER_NAME }}/g" nginx.conf
           # Replace placeholder with actual project name
           sed -i "s/\${PROJECT_NAME}/${{ env.PROJECT_NAME }}/g" nginx.modular.conf
           cp nginx.modular.conf dist/
